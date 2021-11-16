@@ -720,6 +720,6 @@ with TemporaryDirectory() as temp_output_dir:
         """
         if prefix is None:
             prefix = ""
-        subprocess.run(["bash", "-c", f"source nci-util.sh; cloud dirupload output {d}"])
+        subprocess.run(["bash", "-c", f"source nci-util.sh; cloud upload output {d}"])
 
     upload_results(temp_output_dir)
