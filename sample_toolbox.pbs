@@ -1,0 +1,6 @@
+PYRATE_TOOLBOX=/g/data/dg9/insar/Data61_VL/toolbox
+
+# Tell the nci_load_modules script where to find the venv
+PYRATE_VENV=${PYRATE_TOOLBOX}/PyRateVenv
+
+source ${PYRATE_TOOLBOX}/PyRate/scripts/nci_load_modules.sh
