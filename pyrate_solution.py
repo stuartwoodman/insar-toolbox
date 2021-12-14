@@ -721,5 +721,10 @@ with TemporaryDirectory() as temp_output_dir:
         if prefix is None:
             prefix = ""
         subprocess.run(["bash", "-c", f"source nci-util.sh; cloud dirupload output {d}"])
+		
+	
+    json_path = os.path.join(temp_output_dir, "output", "json")
+    cmd = ["python3", "utils/time_series_to_json.py", "-i", temp_output_dir, "-o", json_path, "-z"]
+    subprocess.run(cmd, check=True, text=True)
 
     upload_results(temp_output_dir)
