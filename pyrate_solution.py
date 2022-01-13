@@ -720,7 +720,7 @@ with TemporaryDirectory() as temp_output_dir:
         """
         if prefix is None:
             prefix = ""
-        subprocess.run(["bash", "-c", f"source nci-util.sh; cloud dirupload output {d}"])
+        subprocess.run(["bash", "-c", f"source nci-util.sh; cloud upload output {d}"])
 		
 	
     json_path = os.path.join(temp_output_dir, "json")
