@@ -598,6 +598,14 @@ if not os.path.isdir(tile_dir):
     sys.exit(1)
 print("INSAR ARD data from", tile_dir)
 
+
+def run_bad_interferogram_detector(input_file, output_file):
+    """Run bad interferogram detector """
+    cmd = ["python3", "/g/data/dg9/rlt118/bad_int_detector/stack_filter_BID.py", input_file, output_file]
+    print("Running bad inteferogram detector")
+    return subprocess.run(cmd, check=True, text=True)
+
+
 def run_pyrate_cmd(pyrate_cmd, config_file, *args):
     """Run pyrate_cmd using config_file and any extra args."""
     cmd = ["pyrate", pyrate_cmd, "-f", config_file, *args]
@@ -636,6 +644,13 @@ with TemporaryDirectory() as temp_output_dir:
                     h.write(interval.basefile)
                     h.write('\n')
 
+    # Run bad interferogram detector
+    try:
+        ifgcleanfilelist = os.path.join(temp_output_dir, "ifgs-bid.list")
+        run_bad_interferogram_detector(ifgfilelist, ifgcleanfilelist)
+    except subprocess.CalledProcessError as ex:
+        print(f"PyRate bad interferogram detection failed with exception.\nreturncode: {ex.returncode}\nfailed command: {ex.cmd}\n\nexception: {ex!r}")
+
     # Find the DEM and its header file
     if not tile.dem_file or not tile.dem_header:
         print("No DEM file or header found in standard location.")
@@ -656,7 +671,7 @@ with TemporaryDirectory() as temp_output_dir:
             f.write(slc)
             f.write('\n')
 
-    config = dict(ifgfilelist=ifgfilelist,
+    config = dict(ifgfilelist=ifgcleanfilelist,
                   demfile=tile.dem_file,
                   demheaderfile=tile.dem_header,
                   ltfile=tile.lt_file,
