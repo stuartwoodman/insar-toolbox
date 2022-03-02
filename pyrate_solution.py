@@ -602,7 +602,7 @@ print("INSAR ARD data from", tile_dir)
 def run_bad_interferogram_detector(input_file, output_file):
     """Run bad interferogram detector """
     cmd = ["python3", "/g/data/dg9/rlt118/bad_int_detector/stack_filter_BID.py", input_file, output_file]
-    print("Running bad inteferogram detector")
+    print("Running bad interferogram detector")
     return subprocess.run(cmd, check=True, text=True)
 
 
