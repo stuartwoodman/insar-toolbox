@@ -704,12 +704,14 @@ with TemporaryDirectory() as temp_output_dir:
         try:
             # Run the full workflow
             # TODO allow user to configure the steps they want to run
-            run_pyrate_cmd("workflow", conf_file)
-            # if not has_tifs:
-            #     run_pyrate_cmd("conv2tif", conf_file)
-            # run_pyrate_cmd("prepifg", conf_file)
-            # run_pyrate_cmd("process", conf_file)
-            # run_pyrate_cmd("merge", conf_file)
+            #run_pyrate_cmd("workflow", conf_file)
+            if not has_tifs:
+                run_pyrate_cmd("conv2tif", conf_file)
+            run_pyrate_cmd("prepifg", conf_file)
+            run_pyrate_cmd("correct", conf_file)
+            run_pyrate_cmd("timeseries", conf_file)
+            #run_pyrate_cmd("process", conf_file)
+            run_pyrate_cmd("merge", conf_file)
         except subprocess.CalledProcessError as ex:
             with open(os.path.join(temp_output_dir, "EXCEPTION.txt"), 'w') as f:
                 f.write(f"PyRate job failed with exception.\nreturncode: {ex.returncode}\nfailed command: {ex.cmd}\n\nexception: {ex!r}")
