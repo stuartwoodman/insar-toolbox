@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 from datetime import date
 import re
 from typing import List
+from osgeo import ogr
 
 # ================
 # VIC and NSW 2021
@@ -309,6 +310,8 @@ NS_WFS2 = {
 PATH_WFS2 = "./wfs:member//insar:insar_tiles"
 # TODO: look for insar tile schema rather than element name
 
+PATH_GEOMETRY = "./insar:wkb_geometry/gml:Polygon/gml:exterior/gml:LinearRing/gml:posList"
+
 
 class PyrateException(Exception):
     pass
@@ -557,6 +560,41 @@ class InsarTileFeatures(object):
             return InsarTile(tile, self.ns)
         raise PyrateException("No tile found in input dataset.")
 
+    def bbox_to_wkt_text(self, bbox):
+        """Return a WKT Polygon string from the crop bounding box"""
+        point_list = bbox.split(', ')
+        wkt = "Polygon(({x1} {y1},{x2} {y1},{x2} {y2},{x1} {y2},{x1} {y1}))".format(
+            x1=point_list[0], y1=point_list[1], x2=point_list[2], y2=point_list[3]
+        )
+        return wkt
+
+    def geom_to_wkt_text(self, geom):
+        """Return a WKT Polygon string from the tile geometry"""
+        point_list = geom.split(' ')
+        wkt = "Polygon(("
+        for i in range(0, len(point_list), 2):
+            wkt += point_list[i] + " " + point_list[i+1]
+            if i < len(point_list) - 2:
+                wkt += ","
+        wkt += "))"
+        return wkt
+
+    def best(self):
+        """Return the tile in the collection completely constrained by crop_bbox."""
+        if not self.root:
+            raise Exception("PyrateTiles.best() called before load().")
+        crop_wkt = self.bbox_to_wkt_text(crop_bbox)
+        crop_poly = ogr.CreateGeometryFromWkt(crop_wkt)
+        tiles = self.root.findall(self.PATH, self.ns)
+        if tiles:
+            for t in tiles:
+                geom = t.find(PATH_GEOMETRY, self.ns)
+                tile_wkt = self.geom_to_wkt_text(geom.text)
+                tile_poly = ogr.CreateGeometryFromWkt(tile_wkt)
+                if tile_poly.Contains(crop_poly):
+                    return InsarTile(t, self.ns)
+        raise PyrateException("No tile could be found that fully encloses the crop bounding box.")
+
 
 # Return epoch strings in pyrate filename/path.
 #
@@ -584,7 +622,7 @@ try:
 
     # Grab the first tile
     # TODO: Support processing multiple tiles
-    tile = dataset.first()
+    tile = dataset.best()
     tile_id = tile.gmlid
     print("Found tile", tile_id)
 except Exception as ex:
